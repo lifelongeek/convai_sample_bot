@@ -1,0 +1,104 @@
+#!/bin/bash
+
+exp_dir='exp-squad'
+emb='data/glove.840B.300d.txt'
+exp=
+gpuid= 
+
+train=1 # train=1, eval=0
+debug=0
+
+OPTIND=1
+while getopts "e:g:t:d:" opt; do
+	case "$opt" in
+		e) exp=$OPTARG ;;
+		g) gpuid=$OPTARG ;;
+		t) train=$OPTARG ;;
+		d) debug=$OPTARG ;;
+	esac
+done
+shift $((OPTIND -1))
+
+script='examples/drqa/train.py'
+script=${script}' --log_file '$exp_dir'/exp'${exp}'.log'
+script=${script}' -bs 32 -t squad'
+if [ $train -eq 1 ]; then
+	script=${script}' --train_interval 3368'
+fi
+
+if [ $train -eq 0 ]; then
+	script='examples/drqa/eval.py -t squad'
+	script=${script}' --pretrained_model '${exp_dir}/${exp}' --datatype valid'
+fi
+
+if [ $debug -eq 0 ]; then
+	script=${script}' --embedding_file '$emb
+fi
+
+
+# lrate_decay=True by default
+case "$exp" in
+	#echo $exp_dir/$exp
+	#echo $emb
+	#echo $gpuid
+
+	49) python $script --model_file $exp_dir/$exp --embedding_file $emb --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --add_char2word True --kernels '[(5,200)]' --nLayer_Highway 1
+	;;
+	50) python $script --model_file $exp_dir/$exp --embedding_file $emb --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --ans_sent_predict True --hidden_size_sent 256 --coeff_ans_predict 0.01
+	;;
+        51) python $script --model_file $exp_dir/$exp --embedding_file $emb --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --add_char2word True --kernels '[(5,200)]' --nLayer_Highway 1 --rnn_padding True
+        ;;
+        52) python $script --model_file $exp_dir/$exp --embedding_file $emb --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --ans_sent_predict True --hidden_size_sent 256 --coeff_ans_predict 0.01 --rnn_padding True
+        ;;
+
+        53) python $script --model_file $exp_dir/$exp --embedding_file $emb --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --add_char2word True --kernels '[(5,200)]' --nLayer_Highway 1
+        ;;
+        54) python $script --model_file $exp_dir/$exp --embedding_file $emb --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --ans_sent_predict True --hidden_size_sent 256 --coeff_ans_predict 0.01
+	;;
+        55) python $script --model_file $exp_dir/$exp --embedding_file $emb --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --add_char2word True --kernels '[(5,200)]' --nLayer_Highway 1 --vocab_size_char 30
+        ;;
+        56) python $script --model_file $exp_dir/$exp --embedding_file $emb --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --add_char2word True --kernels '[(5,200)]' --nLayer_Highway 1 --vocab_size_char 60
+        ;;
+        57) python $script --model_file $exp_dir/$exp --embedding_file $emb --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --add_char2word True --kernels '[(5,200)]' --nLayer_Highway 1 --vocab_size_char 130
+	;;
+	58) python $script --model_file $exp_dir/$exp --embedding_file $emb --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --ans_sent_predict True --hidden_size_sent 256 --coeff_ans_predict 0.01 --optimizer sgd
+	;;
+    59) python $script --model_file $exp_dir/$exp --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --add_char2word True --kernels '[(5,200)]' --nLayer_Highway 1 --lrate_decay True
+	;;
+	60) python $script --model_file $exp_dir/$exp --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --add_char2word True --kernels '[(5,200)]' --nLayer_Highway 1 --vocab_size_char 60 --lrate_decay True
+	;;
+        61) python $script --model_file $exp_dir/$exp --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --add_char2word True --kernels '[(5,200)]' --nLayer_Highway 1 --lrate_decay True --vocab_size_char 30 --net rnn_reader --qemb_with_wordonly True
+        ;;
+        62) python $script --model_file $exp_dir/$exp --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --add_char2word True --kernels '[(5,200)]' --nLayer_Highway 1 --vocab_size_char 100 --lrate_decay True --net rnn_reader --qemb_with_wordonly True
+        ;;	
+        63) python $script --model_file $exp_dir/$exp --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --add_char2word True --kernels '[(5,200)]' --nLayer_Highway 1 --lrate_decay True --vocab_size_char 100 --net rnn_reader
+        ;;
+        64) python $script --model_file $exp_dir/$exp --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --add_char2word True --kernels '[(5,200)]' --nLayer_Highway 1 --vocab_size_char 30 --lrate_decay True --net rnn_reader
+        ;;
+	
+	pp-nocudnn) python $script --net rnet --model_file $exp_dir/$exp --dropout_rnn 0.3 --dropout_emb 0.3 --gpu $gpuid --qp_bottleneck True --pp_bottleneck True --hidden_size 200 -bs 32 --rnn_type gru --use_cudnn False ## QP -> UNI PP -> UNI
+	;;
+	qp-pp-basic) python $script --net rnet --model_file $exp_dir/$exp --dropout_rnn 0.3 --dropout_emb 0.3 --gpu $gpuid --qp_bottleneck True --qp_birnn True --qp_concat False --pp_bottleneck True --pp_birnn True --pp_concat False --hidden_size 128 --hidden_size_bottleneck 128 --rnn_type lstm --DB 'SQuAD'
+	;;
+	qp-pp-basic-char) python $script --net rnet --model_file $exp_dir/$exp --dropout_rnn 0.3 --dropout_emb 0.3 --gpu $gpuid --qp_bottleneck True --qp_birnn True --qp_concat False --pp_bottleneck True --pp_birnn True --pp_concat False --hidden_size 128 --hidden_size_bottleneck 128 --rnn_type lstm --add_char2word True --kernels '[(5,200)]' --nLayer_Highway 1
+	;;
+	qp-pp-largebottleneck) python $script --net rnet --model_file $exp_dir/$exp --dropout_rnn 0.4 --dropout_emb 0.3 --gpu $gpuid --qp_bottleneck True --qp_birnn True --qp_concat True --pp_bottleneck True --pp_birnn True --pp_concat True --hidden_size 128 --hidden_size_bottleneck 256 --rnn_type lstm
+	;;
+        qp-pp-smallchar) python $script --net rnet --model_file $exp_dir/$exp --dropout_rnn 0.4 --dropout_emb 0.3 --gpu $gpuid --qp_bottleneck True --qp_birnn True --qp_concat True --pp_bottleneck True --pp_birnn True --pp_concat True --hidden_size 100 --hidden_size_bottleneck 100 --rnn_type lstm --add_char2word True --kernels '[(5,100)]' --nLayer_Highway 1
+        ;;
+        qp-pp-basic-decaysmall) python $script --net rnet --model_file $exp_dir/$exp --dropout_rnn 0.4 --dropout_emb 0.3 --gpu $gpuid --qp_bottleneck True --qp_birnn True --qp_concat False --pp_bottleneck True --pp_birnn True --pp_concat False --hidden_size 128 --hidden_size_bottleneck 100 --rnn_type lstm --lrate_decay_factor 0.7
+        ;;
+	
+
+
+
+
+	
+
+	DEBUG) python $script --model_file $exp_dir/$exp --lRate_decay True --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --ans_sent_predict True --hidden_size_sent 256 --coeff_ans_predict 0.01 --add_char2word True --kernels '[(5,200)]' --nLayer_Highway 1
+	;;
+	DEBUG_msmarco) python $script --model_file $exp_dir/$exp --gpu $gpuid --dropout_rnn 0.4 --dropout_emb 0.3 --tune_partial 0 --gpu $gpuid --hidden_size 16 --hidden_size_bottleneck 16
+	;;
+
+esac
+

@@ -1,0 +1,7 @@
+boto3
+requests
+nltk
+numpy
+Pillow
+pyzmq
+wget

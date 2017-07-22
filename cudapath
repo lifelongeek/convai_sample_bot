@@ -1,0 +1,9 @@
+export PATH=/usr/local/cuda/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+export CPATH=/usr/include:$CPATH
+export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LIBRARY_PATH
+export CPATH=/root/anaconda3/include:$CPATH
+export LIBRARY_PATH=/root/anaconda3/pkgs/cudnn-6.0-0/lib:$LIBRARY_PATH
+export CFLAGS=-I/root/anaconda3/pkgs/cudnn-6.0-0/include
+export LDFLAGS=-L/root/anaconda3/pkgs/cudnn-6.0-0/lib
+export LD_LIBRARY_PATH=/root/anaconda3/pkgs/cudnn-6.0-0/lib:$LD_LIBRARY_PATH
