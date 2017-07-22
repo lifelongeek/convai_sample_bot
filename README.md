@@ -10,9 +10,12 @@ Install
 
 4) install nvidia-docker ( https://github.com/NVIDIA/nvidia-docker)
 
-5) run setup.sh 
+5) in setup.sh, modify absolute path for this project.
+
+6) run setup.sh 
 
 --> will setup docker image
+
 
 
 
