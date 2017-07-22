@@ -10,8 +10,12 @@ Install
 
 4) install nvidia-docker ( https://github.com/NVIDIA/nvidia-docker)
 
-5) run setup.sh --> will setup docker image
+5) run setup.sh 
+
+--> will setup docker image
 
 How to run
 
-python3 bot.py --> will connect with telegram @ConvAI_Baseline with BOT_ID = DA008C35-73CD-4A64-8D67-5C922808D6B4
+python3 bot.py 
+
+--> will connect with telegram @ConvAI_Baseline with BOT_ID = DA008C35-73CD-4A64-8D67-5C922808D6B4
