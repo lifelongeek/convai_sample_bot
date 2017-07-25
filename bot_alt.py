@@ -123,8 +123,8 @@ def main():
     if BOT_ID is None:
         raise Exception('You should enter your bot token/id!')
 
-    BOT_URL = os.path.join('https://ipavlov.mipt.ru/nipsrouter/', BOT_ID) # NIPS (@ConvaiBot)
-    # BOT_URL = os.path.join('https://ipavlov.mipt.ru/nipsrouter-alt/', BOT_ID) # alternative (@AltConvaiBot)
+    # BOT_URL = os.path.join('https://ipavlov.mipt.ru/nipsrouter/', BOT_ID) # NIPS (@ConvaiBot)
+    BOT_URL = os.path.join('https://ipavlov.mipt.ru/nipsrouter-alt/', BOT_ID) # alternative (@AltConvaiBot)
 
 
     bot = ConvAISampleBot()

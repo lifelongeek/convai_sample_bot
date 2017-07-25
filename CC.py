@@ -25,7 +25,7 @@ class CC:
             self.xp = cuda.cupy
         else:
             #chainer.cuda.available = False
-            xp = np
+            self.xp = np
 
         # use chainer in testing mode
         chainer.config.train = False
@@ -34,7 +34,7 @@ class CC:
         print('Loading model params from ' + model_path)
         with open(model_path, 'rb') as f:
             #pdb.set_trace()
-            self.vocab, self.model, train_args = pickle.load(f)
+            self.vocab, self.model, _ = pickle.load(f)
             #pdb.set_trace()
         if self.use_gpu and gpu >= 0:
             self.model.to_gpu()
