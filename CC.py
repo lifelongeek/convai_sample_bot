@@ -12,6 +12,7 @@ sys.path.append('DSTC/ChatbotBaseline/egs/opensubs/tools') #main
 import pdb
 from chainer import cuda
 from nltk.tokenize import casual_tokenize
+from simpler_nlg import SimplerNLG
 
 class CC:
     def __init__(self, use_gpu=False, gpu=0, model_path='model/cc.opensub.bst', maxlen=20, beam=5, penalty=1, nbest=1):
@@ -84,36 +85,50 @@ class CC:
         #print('cc1')
         x_data = np.array(sentence, dtype=np.int32)
         #print('cc2')
-        x = chainer.Variable(self.xp.asarray(x_data))
-        #print('cc3')
-        #self.state exists
-        """
-        besthyps, self.state = self.model.generate(self.state, x, self.eos, self.eos, unk=self.unk,
+        with chainer.using_config('train', False):
+            x = chainer.Variable(self.xp.asarray(x_data))
+            #print('cc3')
+            #self.state exists
+            """
+            besthyps, self.state = self.model.generate(self.state, x, self.eos, self.eos, unk=self.unk,
                                                    maxlen=self.maxlen,
                                                    beam=self.beam,
                                                    penalty=self.penalty,
                                                    nbest=self.nbest)
-        """
+           """
 
-        #self.state = None
-        besthyps, self.state = self.model.generate(None, x, self.eos, self.eos, unk=self.unk,
-                                                   maxlen=self.maxlen,
-                                                   beam=self.beam,
-                                                   penalty=self.penalty,
-                                                   nbest=self.nbest)
+            #self.state = None
+            besthyps, self.state = self.model.generate(None, x, self.eos, self.eos, unk=self.unk,
+                                                        maxlen=self.maxlen,
+                                                        beam=self.beam,
+                                                        penalty=self.penalty,
+                                                        nbest=self.nbest)
 
-        #print('cc4')
-        reply = ""
+            #print('cc4')
+            # Ver1
+            '''
+            reply = ""
 
-        #print('cc5')
-        for w in besthyps[0][0]:
-            if w != self.eos:
-                reply += self.vocablist[w] + " "
+            #print('cc5')
+            for w in besthyps[0][0]:
+                if w != self.eos:
+                    reply += self.vocablist[w] + " "
 
-        #print('cc6')
-        reply = reply[:-1]
+            #print('cc6')
 
-        return reply
+            reply = reply[:-1]
+            return reply
+            '''
+
+            # Ver2
+            reply = []
+
+            #print('cc5')
+            for w in besthyps[0][0]:
+                if w != self.eos:
+                    reply.append(self.vocablist[w])
+
+            return SimplerNLG.realise(reply)
 
 
 if __name__ == "__main__":

@@ -91,24 +91,31 @@ class ConvAISampleBot:
                 'engagement': 0
             }
         elif query.startswith('/start '):
-            print("\tDecide to skip actting to /start with ID %s" % cur_chat_id)
-            return
+            # Ver1
+            #print("\tDecide to skip actting to /start with ID %s" % cur_chat_id)
+            #return
+
+            # Ver2
+            response_text = "Hello. I am professional teacher about reading comprehension. Let's compete! You give me questions, and I will answer all of your questions. XD"
+
         else:
             # print("\tDecide to respond with text: %s" % query)
             print("\tGet response for user query : %s" % query)
             response = requests.get(
                 'http://0.0.0.0:1990/submit',
                 params={'question': query, 'paragraph': paragraph})
+            response_text = response.text
             #print(type(response))
-            message = {
-                'chat_id': cur_chat_id
-            }
 
-            data = {
-                'text': response.text,
-                'evaluation': 0
-            }
+        message = {
+            'chat_id': cur_chat_id
+        }
 
+        data = {
+            'text': response_text,
+            'evaluation': 0
+        }
+        print("\tChatbot's response : %s" % response_text)
         message['text'] = json.dumps(data)
         return message
 

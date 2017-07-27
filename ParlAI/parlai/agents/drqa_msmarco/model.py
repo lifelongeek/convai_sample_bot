@@ -265,7 +265,10 @@ class DocReaderModel(object):
 
         #pdb.set_trace()
         # GPU
-        data_single = [Variable(e.cuda(async=True)) for e in data_single]
+        if self.opt['cuda']:
+            data_single = [Variable(e.cuda(async=True)) for e in data_single]
+        else:
+            data_single = [Variable(e) for e in data_single]
 
         score_list = self.network(*data_single)
 
@@ -273,8 +276,9 @@ class DocReaderModel(object):
         score_e = score_list[1]
 
         # Transfer to CPU/normal tensors for numpy ops
-        score_s = score_s.data.cpu()
-        score_e = score_e.data.cpu()
+        if self.opt['cuda']:
+            score_s = score_s.data.cpu()
+            score_e = score_e.data.cpu()
 
         # Get argmax text spans
         text = passage
@@ -282,7 +286,15 @@ class DocReaderModel(object):
         predictions = []
         max_len = self.opt['max_len'] or score_s.size(1)
 
+
         scores = torch.ger(score_s[0], score_e[0])
+        #print(type(score_s[0]))
+        #print(type(score_e[0]))
+        #print(type(scores))
+
+        if not self.opt['cuda']:
+            scores = scores.data
+
         scores.triu_().tril_(max_len - 1)
         scores = scores.numpy()
         s_idx, e_idx = np.unravel_index(np.argmax(scores), scores.shape)

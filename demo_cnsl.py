@@ -7,8 +7,8 @@ class Demo(object):
     def __init__(self, use_gpu=False):
         self.use_gpu = use_gpu
         print('use_gpu = ' + str(self.use_gpu))
-        # QA config
 
+        # QA config
         QA_mdl_path = 'model/qa.bst'  # in bot_code
         qa_opt =  get_opt(QA_mdl_path) # Simplify this
         qa_opt['pretrained_model'] = QA_mdl_path
@@ -28,10 +28,10 @@ class Demo(object):
         qa_mode = self.DA.classify_user_query(question, passage)
 
         if qa_mode:
-            #print('qa mode')
+            print('qa mode')
             response = self.QA.get_reply(passage, question)
         else:
-            #print('cc mode')
+            print('cc mode')
             response = self.CC.get_reply('sample_context','sample_reply', question)
 
         return response

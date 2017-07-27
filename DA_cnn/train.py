@@ -8,18 +8,30 @@ import datetime
 import data_helpers
 from text_cnn import TextCNN
 from tensorflow.contrib import learn
+import pdb
 
 # Parameters
 # ==================================================
 
 # Data loading params
 tf.flags.DEFINE_float("dev_sample_percentage", .1, "Percentage of the training data to use for validation")
-#tf.flags.DEFINE_string("positive_data_file", "./data/rt-polaritydata/rt-polarity.pos", "Data source for the positive data.")
-#tf.flags.DEFINE_string("negative_data_file", "./data/rt-polaritydata/rt-polarity.neg", "Data source for the negative data.")
-#tf.flags.DEFINE_string("positive_data_file", "./data/chatbot/squad.txt", "Data source for the positive data.")
-tf.flags.DEFINE_string("positive_data_file", "./data/chatbot/squad_filterlengthy.txt", "Data source for the positive data.")
-#tf.flags.DEFINE_string("negative_data_file", "./data/chatbot/movie.txt", "Data source for the negative data.")
-tf.flags.DEFINE_string("negative_data_file", "./data/chatbot/movie_unique_filterlengthy.txt", "Data source for the negative data.")
+
+#tf.flags.DEFINE_string("positive_data_file", "./data/squad+log+v2.txt", "Data source for the positive data.")
+#tf.flags.DEFINE_string("negative_data_file", "./data/movie+log+v2.txt", "Data source for the negative data.")
+
+# sentences of training data 
+# CC : opensubs 309975
+### CC-Q : 11247104
+### CC-D : 50742208
+# CC_logs 177
+# QA : squad 87559
+# QA_logs : 37
+
+data_pos = ['./data/squad_train_q.txt', 
+            './data/log_processed_qa.txt']
+data_neg = ['./data/opensubs_trial_data_processed_train_q.txt',
+            './data/opensubs_trial_data_processed_train_d.txt', 
+            './data/log_processed_cc.txt']
 
 # Model Hyperparameters
 tf.flags.DEFINE_integer("embedding_dim", 128, "Dimensionality of character embedding (default: 128)")
@@ -51,7 +63,8 @@ print("")
 
 # Load data
 print("Loading data...")
-x_text, y = data_helpers.load_data_and_labels(FLAGS.positive_data_file, FLAGS.negative_data_file)
+#x_text, y = data_helpers.load_data_and_labels(FLAGS.positive_data_file, FLAGS.negative_data_file)
+x_text, y = data_helpers.load_data_and_labels_qd(data_pos, data_neg)
 
 # Build vocabulary
 max_document_length = max([len(x.split(" ")) for x in x_text])
@@ -72,14 +85,15 @@ y_train, y_dev = y_shuffled[:dev_sample_index], y_shuffled[dev_sample_index:]
 print("Vocabulary Size: {:d}".format(len(vocab_processor.vocabulary_)))
 print("Train/Dev split: {:d}/{:d}".format(len(y_train), len(y_dev)))
 
-
 # Training
 # ==================================================
+
 
 with tf.Graph().as_default():
     session_conf = tf.ConfigProto(
       allow_soft_placement=FLAGS.allow_soft_placement,
-      log_device_placement=FLAGS.log_device_placement)
+      log_device_placement=FLAGS.log_device_placement) #,
+      #gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333))
     sess = tf.Session(config=session_conf)
     with sess.as_default():
         cnn = TextCNN(
@@ -155,26 +169,37 @@ with tf.Graph().as_default():
             print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, loss, accuracy))
             train_summary_writer.add_summary(summaries, step)
 
-        def dev_step(x_batch, y_batch, writer=None):
+        def dev_step(x_dev, y_dev, writer=None):
             """
             Evaluates model on a dev set
             """
-            feed_dict = {
-              cnn.input_x: x_batch,
-              cnn.input_y: y_batch,
-              cnn.dropout_keep_prob: 1.0
-            }
-            step, summaries, loss, accuracy = sess.run(
-                [global_step, dev_summary_op, cnn.loss, cnn.accuracy],
-                feed_dict)
+            loss_tot = 0
+            accuracy_tot = 0
+            batch_size = FLAGS.batch_size
+            for idx in range(0, int((len(x_dev)-1)/batch_size + 1)):
+                #pdb.set_trace()
+                end_idx = min((idx+1)*batch_size, len(x_dev))
+                feed_dict = {
+                  cnn.input_x: x_dev[idx*batch_size:end_idx],
+                  cnn.input_y: y_dev[idx*batch_size:end_idx],
+                  cnn.dropout_keep_prob: 1.0
+                }
+                step, summaries, loss, accuracy = sess.run(
+                    [global_step, dev_summary_op, cnn.loss, cnn.accuracy],
+                    feed_dict)
+                loss_tot =loss_tot+ loss * (end_idx - idx*batch_size)
+                accuracy_tot = accuracy_tot + accuracy * (end_idx - idx*batch_size)
+                
             time_str = datetime.datetime.now().isoformat()
-            print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, loss, accuracy))
+            print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, loss_tot/len(x_dev), accuracy_tot/len(x_dev)))
             if writer:
                 writer.add_summary(summaries, step)
 
         # Generate batches
         batches = data_helpers.batch_iter(
             list(zip(x_train, y_train)), FLAGS.batch_size, FLAGS.num_epochs)
+        #batches_dev = data_helpers.batch_iter(
+        #    list(zip(x_dev, y_dev)), FLAGS.batch_size, FLAGS.num_epochs)
         # Training loop. For each batch...
         for batch in batches:
             x_batch, y_batch = zip(*batch)
@@ -182,8 +207,12 @@ with tf.Graph().as_default():
             current_step = tf.train.global_step(sess, global_step)
             if current_step % FLAGS.evaluate_every == 0:
                 print("\nEvaluation:")
-                dev_step(x_dev, y_dev, writer=dev_summary_writer)
+                dev_step(x_dev, y_dev, writer=dev_summary_writer)        
                 print("")
             if current_step % FLAGS.checkpoint_every == 0:
                 path = saver.save(sess, checkpoint_prefix, global_step=current_step)
                 print("Saved model checkpoint to {}\n".format(path))
+
+
+
+

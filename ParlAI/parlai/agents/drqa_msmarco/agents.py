@@ -221,7 +221,7 @@ class DocReaderAgent(Agent):
             NULLWORD_Idx_in_char=self.opt['NULLWORD_Idx_in_char'], cuda=self.opt['cuda'],
             use_char=self.opt['add_char2word'], sent_predict=self.opt['ans_sent_predict']
         )
-        pdb.set_trace()
+        #pdb.set_trace()
         # Either train or predict
         if 'labels' in self.observation:
             self.n_examples += 1
@@ -277,10 +277,13 @@ class DocReaderAgent(Agent):
         return batch_reply
 
     def QA_single(self, passage, question):
+        #print('(QA single) befoore get features')
         passage_t, question_t, span_t, feature = tokenize_and_get_features(self.opt, self.word_dict, self.feature_dict, passage, question)
 
         # predict answer
+        #print('(QA single) before predict single')
         answer = self.model.predict_single(self.word_dict, feature, passage, passage_t, question_t, span_t)
+        #print('(QA single) after predict single')
 
         return answer
 

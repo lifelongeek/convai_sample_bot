@@ -91,27 +91,47 @@ class ConvAISampleBot:
                 'engagement': 0
             }
         elif query.startswith('/start '):
-            print("\tDecide to skip actting to /start with ID %s" % cur_chat_id)
-            return
+            # Ver1
+            #print("\tDecide to skip actting to /start with ID %s" % cur_chat_id)
+            #return
+
+            # Ver2
+            response_text = "Hello. I am professional teacher about reading comprehension. Let's compete! You give me questions, and I will answer all of your questions. XD"
+
         else:
             # print("\tDecide to respond with text: %s" % query)
             print("\tGet response for user query : %s" % query)
             response = requests.get(
                 'http://0.0.0.0:1990/submit',
                 params={'question': query, 'paragraph': paragraph})
+            response_text = response.text
             #print(type(response))
-            message = {
-                'chat_id': cur_chat_id
-            }
 
-            data = {
-                'text': response.text,
-                'evaluation': 0
-            }
+        message = {
+            'chat_id': cur_chat_id
+        }
 
+        data = {
+            'text': response_text
+            #,'evaluation': 0  # do we need it?
+        }
+        print("\tChatbot's response : %s" % response_text)
         message['text'] = json.dumps(data)
         return message
 
+
+def make_json_message(cur_chat_id, rule_based_message):
+        message = {
+            'chat_id': cur_chat_id
+        }
+
+        data = {
+            'text': rule_based_message
+            #,'evaluation': 0 # do we need it?
+        }
+        print("\tChatbot's response : %s" % rule_based_message)
+        message['text'] = json.dumps(data)
+        return message
 
 def main():
 
@@ -123,12 +143,13 @@ def main():
     if BOT_ID is None:
         raise Exception('You should enter your bot token/id!')
 
-    # BOT_URL = os.path.join('https://ipavlov.mipt.ru/nipsrouter/', BOT_ID) # NIPS (@ConvaiBot)
+    #BOT_URL = os.path.join('https://ipavlov.mipt.ru/nipsrouter/', BOT_ID) # NIPS (@ConvaiBot)
     BOT_URL = os.path.join('https://ipavlov.mipt.ru/nipsrouter-alt/', BOT_ID) # alternative (@AltConvaiBot)
 
 
     bot = ConvAISampleBot()
 
+    #init_time = time.time()
     while True:
         try:
             time.sleep(1)
@@ -140,6 +161,8 @@ def main():
                 res.raise_for_status()
 
             print("Got %s new messages" % len(res.json()))
+            #cur_time = time.time()
+
             for m in res.json():
                 print("Process message %s" % m)
                 bot.observe(m)
